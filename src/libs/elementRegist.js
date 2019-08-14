@@ -1,3 +1,3 @@
-import Vue from "../../../../FE-temp/src/router/node_modules/vue"
+import Vue from "vue"
 import {Button} from "element-ui"
 Vue.use(Button)
