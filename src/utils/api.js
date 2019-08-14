@@ -2,7 +2,7 @@ import axios from "axios"
 import store from "store"
 import config from "../config"
 import {go} from "../utils/util"
-import {Toast} from "vant"
+// import {Toast} from "vant" Toast=> element
 const apiMap = {
   login: "/api/user/login"
 }
