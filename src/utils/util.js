@@ -1,4 +1,75 @@
 import router from "../router/router"
+import {Toast} from "vant"
+import Vue from "vue"
+Vue.use(Toast)
+let ws = null
+
+function plusReady() {
+  ws = window.plus.webview.currentWebview()
+  window.plus.key.addEventListener(
+    "backbutton",
+    function() {
+      if (window.plus.device.vendor != "Apple") {
+        back()
+      } else {
+        window.plus.webview.close(ws, "pop-out", 200)
+      }
+    },
+    false
+  )
+}
+
+/**
+ * app相关
+ */
+const handleH5Plus = () => {
+  // H5 plus事件处理
+  if (window.plus) {
+    plusReady()
+  } else {
+    document.addEventListener("plusready", plusReady, false)
+  }
+}
+
+/**
+ * 是否是app
+ */
+const isApp = () => {
+  if (navigator.userAgent.indexOf("Html5Plus") > -1) {
+    return true
+  } else {
+    return false
+  }
+}
+
+/**
+ * ios用户
+ */
+const isIOSUser = () => {
+  if (isApp() && window.plus.device.vendor == "Apple") {
+    return true
+  } else {
+    return false
+  }
+}
+
+/**
+ * android 用户
+ */
+const isAndroid = () => {
+  if (isApp() && !isIOSUser()) {
+    return true
+  } else {
+    return false
+  }
+}
+
+/** 是否是有齐刘海 */
+const hasNotchInScreen = () => {
+  if (window.plus && window.plus.navigator) {
+    return window.plus.navigator.hasNotchInScreen()
+  }
+}
 
 /**
  *
@@ -7,17 +78,25 @@ import router from "../router/router"
  * @param {*boolean} needNewTag 是否需要从新标签打开 默认为false
  */
 const go = (name, query = null, needNewTag = false) => {
-  if (needNewTag) {
-    const {href} = router.resolve({
+  if (isIOSUser()) {
+    const routeUrl = router.resolve({
       name,
       query
     })
-    window.open(href, "_blank")
+    location.href = routeUrl.href
   } else {
-    router.push({
-      name,
-      query
-    })
+    if (needNewTag) {
+      const {href} = router.resolve({
+        name,
+        query
+      })
+      window.open(href, "_blank")
+    } else {
+      router.push({
+        name,
+        query
+      })
+    }
   }
 }
 
@@ -37,7 +116,12 @@ const goReplace = (name, query = null) => {
  * 路由返回
  */
 const back = () => {
-  router.back()
+  if (isIOSUser()) {
+    var ws = window.plus.webview.currentWebview()
+    window.plus.webview.close(ws, "pop-out", 200)
+  } else {
+    router.back()
+  }
 }
 
 /**
@@ -56,105 +140,33 @@ const windowRize = cb => {
 const remAdaptive = () => {
   const r = document.documentElement
   let a = r.getBoundingClientRect().width
-  if (a > 750) {
-    a = 750
+  let b = a
+
+  if (b > 750) {
+    b = 375
   }
-  const rem = a / 7.5
+  const rem = b / 7.5
   r.style.fontSize = `${rem}px`
 }
 
 /**
- *
+ * title
  * @param {*string} title 文档title
  */
 const title = title => {
   document.title = title
 }
 
-/**
- * 获取url参数
- */
-const getParam = name => {
-  var reg = new RegExp("([?])" + name + "=([^&]*)(&|$)", "i")
-  var r = window.location.hash.substr(1).match(reg)
-  if (r != null) return r[2]
-
-  reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i")
-  r = window.location.search.substr(1).match(reg)
-  if (r != null) return r[2]
-
-  return null
+export {
+  go,
+  goReplace,
+  back,
+  remAdaptive,
+  windowRize,
+  title,
+  isIOSUser,
+  hasNotchInScreen,
+  isApp,
+  isAndroid,
+  handleH5Plus
 }
-
-/**
- * 跳转页面并携带code
- */
-const backWithCode = () => {
-  let locationHref = location.href
-  let url
-  if (config.isTestMode) {
-    url = `http://***********/jumpBackWithCode?url=${encodeURIComponent(
-      locationHref
-    )}&appid=${config.appid}`
-  } else {
-    // 正式网址获取code
-    // url = `https://****** */?appid=${
-    //   config.appid
-    // }&response_type=code&scope=snsapi_userinfo&state=0&redirect_uri=${encodeURIComponent(
-    //   locationHref
-    // )}#wechat_redirect`;
-  }
-  location.href = url
-}
-
-/**
- * 获取code失败 jwt失效处理
- */
-const errHandle = () => {
-  store.set("isLogin", false)
-  store.remove("JWT")
-  backWithCode()
-}
-
-/**
- * 登陆
- */
-const login = async code => {
-  const resp = await API.post("login", {code}, false)
-    .then(resp => resp)
-    .catch(() => {
-      errHandle()
-    })
-  if (resp.code == 1000) {
-    store.set("isLogin", true)
-    store.set("JWT", resp.data.token)
-  } else {
-    errHandle()
-  }
-}
-
-/**
- * 检查是否登陆
- */
-const checkLogin = () => {
-  let code = getParam("code")
-  const isLogin = store.get("isLogin")
-  return new Promise(async resolve => {
-    // 判断是否登陆
-    if (isLogin) {
-      resolve()
-    } else {
-      if (code) {
-        code = decodeURIComponent(code)
-          .split("?code=")
-          .pop()
-        await login(code)
-        resolve()
-      } else {
-        backWithCode()
-      }
-    }
-  })
-}
-
-export {go, goReplace, back, remAdaptive, windowRize, title, getParam}
