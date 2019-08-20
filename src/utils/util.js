@@ -2,40 +2,23 @@ import router from "../router/router"
 import {Toast} from "vant"
 import Vue from "vue"
 Vue.use(Toast)
-let ws = null
-
-function plusReady() {
-  ws = window.plus.webview.currentWebview()
-  window.plus.key.addEventListener(
-    "backbutton",
-    function() {
-      if (window.plus.device.vendor != "Apple") {
-        back()
-      } else {
-        window.plus.webview.close(ws, "pop-out", 200)
-      }
-    },
-    false
-  )
-}
-
-/**
- * app相关
- */
-const handleH5Plus = () => {
-  // H5 plus事件处理
-  if (window.plus) {
-    plusReady()
-  } else {
-    document.addEventListener("plusready", plusReady, false)
-  }
-}
 
 /**
  * 是否是app
  */
 const isApp = () => {
-  if (navigator.userAgent.indexOf("Html5Plus") > -1) {
+  if (navigator.plus) {
+    return true
+  } else {
+    return false
+  }
+}
+
+/**
+ * ios用户
+ */
+const isIOSUser = () => {
+  if (isApp() && window.plus.device.vendor == "Apple") {
     return true
   } else {
     return false
