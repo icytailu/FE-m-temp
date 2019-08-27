@@ -26,17 +26,6 @@ const isIOSUser = () => {
 }
 
 /**
- * ios用户
- */
-const isIOSUser = () => {
-  if (isApp() && window.plus.device.vendor == "Apple") {
-    return true
-  } else {
-    return false
-  }
-}
-
-/**
  * android 用户
  */
 const isAndroid = () => {
@@ -150,6 +139,5 @@ export {
   isIOSUser,
   hasNotchInScreen,
   isApp,
-  isAndroid,
-  handleH5Plus
+  isAndroid
 }

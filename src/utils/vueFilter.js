@@ -1,5 +1,3 @@
-import {dateFormat as _dateFormat} from "./util"
-import {timeStampToDay as _timeStampToDay} from "./util"
 /**
  * 使用说明：截取字符串
  * @param {*string} text 截取字符串
@@ -95,17 +93,4 @@ export function timestampFormat(timestamp) {
       )
     }
   }
-}
-/**
- * 使用说明：时间格式转换
- * @param {*string} 时间格式
- * @param {*boolean} needhhmm
- */
-export function dateFormat(string, needhhmm, shorthand) {
-  return _dateFormat(string, needhhmm, shorthand)
-}
-
-// 时间戳转天数
-export function timeStampToDay(number) {
-  return _timeStampToDay(number)
 }
